@@ -6,11 +6,15 @@ import { useGithubData } from './hooks/useGithubData'
 import { calculateRepoHealthScore } from './utils/repoHealth'
 import { Card } from './components/ui/Card'
 import { Skeleton } from './components/ui/Skeleton'
+import { ReposTabView } from './components/tabs/ReposTabView'
+import { ContributorsTabView } from './components/tabs/ContributorsTabView'
 
 type RepoSelection = {
   owner: string
   repo: string
 }
+
+type DashboardTab = 'dashboard' | 'repos' | 'contributors'
 
 const REPO_SELECTION_STORAGE_KEY = 'flowforge.repoSelection'
 
@@ -105,6 +109,7 @@ const Insights = lazy(() =>
 )
 
 function App() {
+  const [activeTab, setActiveTab] = useState<DashboardTab>('dashboard')
   const [selectedRepo, setSelectedRepo] = useState<RepoSelection>(readInitialRepoSelection)
   const [draftRepo, setDraftRepo] = useState<RepoSelection>(selectedRepo)
   const [shareMessage, setShareMessage] = useState<string>('')
@@ -197,10 +202,10 @@ function App() {
       />
 
       <div className="mx-auto flex min-h-screen w-full max-w-[1400px] gap-4 p-3 sm:gap-6 sm:p-6">
-        <Sidebar />
+        <Sidebar activeTab={activeTab} onTabChange={setActiveTab} />
 
         <div className="flex min-w-0 flex-1 flex-col gap-3 sm:gap-6">
-          <Header />
+          <Header activeTab={activeTab} onTabChange={setActiveTab} />
 
           <section className="rounded-2xl border border-white/15 bg-white/5 px-4 py-4 backdrop-blur-xl sm:px-5">
             <div className="flex items-center justify-between gap-3">
@@ -298,137 +303,160 @@ function App() {
           ) : null}
 
           <main className="stagger-grid grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 sm:gap-6 auto-rows-[minmax(120px,auto)]">
-            <Suspense
-              fallback={
-                <Card title="Activity Overview">
-                  <p className="text-xs text-slate-400">Loading charts...</p>
-                </Card>
-              }
-            >
-              <ActivityOverview commits={commits} prs={prs} issues={issues} loading={loading} error={error} />
-            </Suspense>
-
-            <Suspense
-              fallback={
-                <Card title="Repo Velocity">
-                  <p className="text-xs text-slate-400">Loading velocity metrics...</p>
-                </Card>
-              }
-            >
-              <RepoVelocity commits={commits} prs={prs} loading={loading} error={error} />
-            </Suspense>
-
-            <Suspense
-              fallback={
-                <Card title="Issue Throughput">
-                  <p className="text-xs text-slate-400">Loading issue metrics...</p>
-                </Card>
-              }
-            >
-              <IssueThroughput issues={issues} loading={loading} error={error} />
-            </Suspense>
-
-            <Suspense
-              fallback={
-                <Card title="Contributors">
-                  <p className="text-xs text-slate-400">Loading contributors...</p>
-                </Card>
-              }
-            >
-              <Contributors commits={commits} loading={loading} error={error} />
-            </Suspense>
-
-            <Suspense
-              fallback={
-                <Card title="Insights">
-                  <p className="text-xs text-slate-400">Loading insights...</p>
-                </Card>
-              }
-            >
-              <Insights commits={commits} prs={prs} issues={issues} loading={loading} error={error} />
-            </Suspense>
-
-            <Card title="Review SLA">
-              <p className="text-xs text-slate-400">
-                Average PR review + merge time
-                <span
-                  className="metric-tooltip"
-                  title="Average duration from PR creation to merge for merged pull requests."
+            {activeTab === 'dashboard' ? (
+              <>
+                <Suspense
+                  fallback={
+                    <Card title="Activity Overview">
+                      <p className="text-xs text-slate-400">Loading charts...</p>
+                    </Card>
+                  }
                 >
-                  i
-                </span>
-              </p>
-              {loading ? (
-                <Skeleton className="mt-3 h-8 w-28" />
-              ) : averageReviewHours === null ? (
-                <p className="mt-2 text-xs text-slate-400">Not enough merged PRs yet.</p>
-              ) : (
-                <p className="mt-2 font-['Space_Grotesk'] text-2xl font-semibold text-white sm:text-3xl">
-                  {averageReviewHours}h
-                </p>
-              )}
-            </Card>
+                  <ActivityOverview commits={commits} prs={prs} issues={issues} loading={loading} error={error} />
+                </Suspense>
 
-            <Card title="Repo Health">
-              <p className="text-xs text-slate-400">
-                Composite score from commits, issues, and PR velocity
-                <span
-                  className="metric-tooltip"
-                  title="Weighted formula: commits 35%, issue closure 35%, PR merge speed 30%."
+                <Suspense
+                  fallback={
+                    <Card title="Repo Velocity">
+                      <p className="text-xs text-slate-400">Loading velocity metrics...</p>
+                    </Card>
+                  }
                 >
-                  i
-                </span>
-              </p>
-              {loading ? (
-                <Skeleton className="mt-3 h-8 w-20" />
-              ) : !hasRepoSelection ? (
-                <p className="mt-2 text-xs text-slate-400">Select a repository to calculate health score.</p>
-              ) : error ? (
-                <p className="mt-2 text-xs text-rose-200">Score unavailable while API request is failing.</p>
-              ) : commits.length === 0 && prs.length === 0 && issues.length === 0 ? (
-                <p className="mt-2 text-xs text-slate-400">No repository activity available to score.</p>
-              ) : (
-                <>
-                  <p className="mt-2 font-['Space_Grotesk'] text-2xl font-semibold text-white sm:text-3xl">
-                    {repoHealth.score}
-                    <span className="ml-1 text-base text-slate-300">/100</span>
+                  <RepoVelocity commits={commits} prs={prs} loading={loading} error={error} />
+                </Suspense>
+
+                <Suspense
+                  fallback={
+                    <Card title="Issue Throughput">
+                      <p className="text-xs text-slate-400">Loading issue metrics...</p>
+                    </Card>
+                  }
+                >
+                  <IssueThroughput issues={issues} loading={loading} error={error} />
+                </Suspense>
+
+                <Suspense
+                  fallback={
+                    <Card title="Contributors">
+                      <p className="text-xs text-slate-400">Loading contributors...</p>
+                    </Card>
+                  }
+                >
+                  <Contributors commits={commits} loading={loading} error={error} />
+                </Suspense>
+
+                <Suspense
+                  fallback={
+                    <Card title="Insights">
+                      <p className="text-xs text-slate-400">Loading insights...</p>
+                    </Card>
+                  }
+                >
+                  <Insights commits={commits} prs={prs} issues={issues} loading={loading} error={error} />
+                </Suspense>
+
+                <Card title="Review SLA">
+                  <p className="text-xs text-slate-400">
+                    Average PR review + merge time
+                    <span
+                      className="metric-tooltip"
+                      title="Average duration from PR creation to merge for merged pull requests."
+                    >
+                      i
+                    </span>
                   </p>
+                  {loading ? (
+                    <Skeleton className="mt-3 h-8 w-28" />
+                  ) : averageReviewHours === null ? (
+                    <p className="mt-2 text-xs text-slate-400">Not enough merged PRs yet.</p>
+                  ) : (
+                    <p className="mt-2 font-['Space_Grotesk'] text-2xl font-semibold text-white sm:text-3xl">
+                      {averageReviewHours}h
+                    </p>
+                  )}
+                </Card>
 
-                  <div className="mt-3 grid grid-cols-3 gap-2 text-[11px] text-slate-300">
-                    <span className="rounded border border-white/10 bg-slate-900/40 px-2 py-1">
-                      Commits {repoHealth.breakdown.commitFrequency}
+                <Card title="Repo Health">
+                  <p className="text-xs text-slate-400">
+                    Composite score from commits, issues, and PR velocity
+                    <span
+                      className="metric-tooltip"
+                      title="Weighted formula: commits 35%, issue closure 35%, PR merge speed 30%."
+                    >
+                      i
                     </span>
-                    <span className="rounded border border-white/10 bg-slate-900/40 px-2 py-1">
-                      Issues {repoHealth.breakdown.issueClosureRate}
-                    </span>
-                    <span className="rounded border border-white/10 bg-slate-900/40 px-2 py-1">
-                      PR Speed {repoHealth.breakdown.prMergeSpeed}
-                    </span>
-                  </div>
-                </>
-              )}
-            </Card>
+                  </p>
+                  {loading ? (
+                    <Skeleton className="mt-3 h-8 w-20" />
+                  ) : !hasRepoSelection ? (
+                    <p className="mt-2 text-xs text-slate-400">Select a repository to calculate health score.</p>
+                  ) : error ? (
+                    <p className="mt-2 text-xs text-rose-200">Score unavailable while API request is failing.</p>
+                  ) : commits.length === 0 && prs.length === 0 && issues.length === 0 ? (
+                    <p className="mt-2 text-xs text-slate-400">No repository activity available to score.</p>
+                  ) : (
+                    <>
+                      <p className="mt-2 font-['Space_Grotesk'] text-2xl font-semibold text-white sm:text-3xl">
+                        {repoHealth.score}
+                        <span className="ml-1 text-base text-slate-300">/100</span>
+                      </p>
 
-            <Card title="Deployment Rhythm">
-              <p className="text-xs text-slate-400">
-                Average commits per week (6-week window)
-                <span
-                  className="metric-tooltip"
-                  title="Computed as total fetched commits divided across six weekly buckets."
-                >
-                  i
-                </span>
-              </p>
-              {loading ? (
-                <Skeleton className="mt-3 h-8 w-20" />
-              ) : commits.length === 0 ? (
-                <p className="mt-2 text-xs text-slate-400">No commit data available.</p>
-              ) : (
-                <p className="mt-2 font-['Space_Grotesk'] text-2xl font-semibold text-white sm:text-3xl">
-                  {commitsPerWeek}
-                </p>
-              )}
-            </Card>
+                      <div className="mt-3 grid grid-cols-3 gap-2 text-[11px] text-slate-300">
+                        <span className="rounded border border-white/10 bg-slate-900/40 px-2 py-1">
+                          Commits {repoHealth.breakdown.commitFrequency}
+                        </span>
+                        <span className="rounded border border-white/10 bg-slate-900/40 px-2 py-1">
+                          Issues {repoHealth.breakdown.issueClosureRate}
+                        </span>
+                        <span className="rounded border border-white/10 bg-slate-900/40 px-2 py-1">
+                          PR Speed {repoHealth.breakdown.prMergeSpeed}
+                        </span>
+                      </div>
+                    </>
+                  )}
+                </Card>
+
+                <Card title="Deployment Rhythm">
+                  <p className="text-xs text-slate-400">
+                    Average commits per week (6-week window)
+                    <span
+                      className="metric-tooltip"
+                      title="Computed as total fetched commits divided across six weekly buckets."
+                    >
+                      i
+                    </span>
+                  </p>
+                  {loading ? (
+                    <Skeleton className="mt-3 h-8 w-20" />
+                  ) : commits.length === 0 ? (
+                    <p className="mt-2 text-xs text-slate-400">No commit data available.</p>
+                  ) : (
+                    <p className="mt-2 font-['Space_Grotesk'] text-2xl font-semibold text-white sm:text-3xl">
+                      {commitsPerWeek}
+                    </p>
+                  )}
+                </Card>
+              </>
+            ) : null}
+
+            {activeTab === 'repos' ? (
+              <ReposTabView
+                owner={selectedRepo.owner}
+                repo={selectedRepo.repo}
+                commits={commits}
+                prs={prs}
+                issues={issues}
+                loading={loading}
+                error={error}
+                averageReviewHours={averageReviewHours}
+                commitsPerWeek={commitsPerWeek}
+                repoHealthScore={repoHealth.score}
+              />
+            ) : null}
+
+            {activeTab === 'contributors' ? (
+              <ContributorsTabView commits={commits} prs={prs} loading={loading} error={error} />
+            ) : null}
           </main>
         </div>
       </div>
