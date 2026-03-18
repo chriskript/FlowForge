@@ -45,10 +45,20 @@
 
 .title {
   margin: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
   color: #e2e8f0;
   font-size: 0.875rem;
   font-weight: 600;
   letter-spacing: 0.03em;
+}
+
+.titleIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #bae6fd;
 }
 
 .content {

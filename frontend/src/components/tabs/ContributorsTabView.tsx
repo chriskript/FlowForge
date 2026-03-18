@@ -1,4 +1,5 @@
 import type { GithubCommit, GithubPullRequest } from '../../hooks/useGithubData'
+import { GitCommitHorizontal, GitMerge, Trophy, Users } from 'lucide-react'
 import { EmptyState } from '../ui/EmptyState'
 import { Card } from '../ui/Card'
 import { Skeleton } from '../ui/Skeleton'
@@ -108,19 +109,31 @@ export function ContributorsTabView({ commits, prs, loading, error }: Contributo
         <Card title="Contributor Workspace">
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             <div className="rounded-lg border border-white/10 bg-slate-900/35 px-3 py-2.5">
-              <p className="text-[11px] uppercase tracking-[0.1em] text-slate-400">Contributors</p>
+              <p className="inline-flex items-center gap-1.5 text-[11px] uppercase tracking-[0.1em] text-slate-400">
+                <Users size={12} />
+                Contributors
+              </p>
               <p className="mt-1 text-xl font-semibold text-white">{rows.length}</p>
             </div>
             <div className="rounded-lg border border-white/10 bg-slate-900/35 px-3 py-2.5">
-              <p className="text-[11px] uppercase tracking-[0.1em] text-slate-400">Total Commits</p>
+              <p className="inline-flex items-center gap-1.5 text-[11px] uppercase tracking-[0.1em] text-slate-400">
+                <GitCommitHorizontal size={12} />
+                Total Commits
+              </p>
               <p className="mt-1 text-xl font-semibold text-white">{totalCommits}</p>
             </div>
             <div className="rounded-lg border border-white/10 bg-slate-900/35 px-3 py-2.5">
-              <p className="text-[11px] uppercase tracking-[0.1em] text-slate-400">Merged PRs</p>
+              <p className="inline-flex items-center gap-1.5 text-[11px] uppercase tracking-[0.1em] text-slate-400">
+                <GitMerge size={12} />
+                Merged PRs
+              </p>
               <p className="mt-1 text-xl font-semibold text-white">{prs.filter((pr) => pr.mergedAt).length}</p>
             </div>
             <div className="rounded-lg border border-white/10 bg-slate-900/35 px-3 py-2.5">
-              <p className="text-[11px] uppercase tracking-[0.1em] text-slate-400">Top Author</p>
+              <p className="inline-flex items-center gap-1.5 text-[11px] uppercase tracking-[0.1em] text-slate-400">
+                <Trophy size={12} />
+                Top Author
+              </p>
               <p className="mt-1 text-xl font-semibold text-white">{rows[0]?.name ?? 'N/A'}</p>
             </div>
           </div>

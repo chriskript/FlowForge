@@ -2,6 +2,7 @@ import { Card } from '../ui/Card'
 import type { GithubCommit } from '../../hooks/useGithubData'
 import { EmptyState } from '../ui/EmptyState'
 import { Skeleton } from '../ui/Skeleton'
+import { Flame, Users } from 'lucide-react'
 
 type ContributorsProps = {
   commits: GithubCommit[]
@@ -82,7 +83,7 @@ export function Contributors({ commits, loading, error }: ContributorsProps) {
     return (
       <section className="grid grid-cols-1 gap-4 sm:grid-cols-3 sm:gap-6 sm:col-span-2 xl:col-span-3">
         <div className="sm:col-span-2">
-          <Card title="Top Contributors">
+          <Card title="Top Contributors" titleIcon={<Users size={14} />}>
             <div className="mt-4 space-y-3">
               {Array.from({ length: 4 }).map((_, index) => (
                 <Skeleton key={index} className="h-14" />
@@ -91,7 +92,7 @@ export function Contributors({ commits, loading, error }: ContributorsProps) {
           </Card>
         </div>
 
-        <Card title="Contribution Heatmap">
+        <Card title="Contribution Heatmap" titleIcon={<Flame size={14} />}>
           <Skeleton className="mt-4 h-36" />
         </Card>
       </section>
@@ -102,14 +103,14 @@ export function Contributors({ commits, loading, error }: ContributorsProps) {
     return (
       <section className="grid grid-cols-1 gap-4 sm:grid-cols-3 sm:gap-6 sm:col-span-2 xl:col-span-3">
         <div className="sm:col-span-2">
-          <Card title="Top Contributors">
+          <Card title="Top Contributors" titleIcon={<Users size={14} />}>
             <p className="rounded-md border border-rose-300/30 bg-rose-500/10 px-3 py-2 text-xs text-rose-200">
               Unable to load contributors: {error}
             </p>
           </Card>
         </div>
 
-        <Card title="Contribution Heatmap">
+        <Card title="Contribution Heatmap" titleIcon={<Flame size={14} />}>
           <p className="text-xs text-slate-400">No heatmap data while API is unavailable.</p>
         </Card>
       </section>
@@ -120,7 +121,7 @@ export function Contributors({ commits, loading, error }: ContributorsProps) {
     return (
       <section className="grid grid-cols-1 gap-4 sm:grid-cols-3 sm:gap-6 sm:col-span-2 xl:col-span-3">
         <div className="sm:col-span-2">
-          <Card title="Top Contributors">
+          <Card title="Top Contributors" titleIcon={<Users size={14} />}>
             <EmptyState
               title="No Contributors Detected"
               description="Commit authors could not be derived from the selected repository data."
@@ -128,7 +129,7 @@ export function Contributors({ commits, loading, error }: ContributorsProps) {
           </Card>
         </div>
 
-        <Card title="Contribution Heatmap">
+        <Card title="Contribution Heatmap" titleIcon={<Flame size={14} />}>
           <EmptyState
             title="No Heatmap Activity"
             description="Recent commit history is not available to populate the heatmap."
@@ -141,7 +142,7 @@ export function Contributors({ commits, loading, error }: ContributorsProps) {
   return (
     <section className="grid grid-cols-1 gap-4 sm:grid-cols-3 sm:gap-6 sm:col-span-2 xl:col-span-3">
       <div className="sm:col-span-2">
-        <Card title="Top Contributors">
+        <Card title="Top Contributors" titleIcon={<Users size={14} />}>
           <p className="text-xs text-slate-400">Sorted by total commits from API history</p>
 
           <ul className="mt-4 space-y-3">
@@ -164,7 +165,7 @@ export function Contributors({ commits, loading, error }: ContributorsProps) {
         </Card>
       </div>
 
-      <Card title="Contribution Heatmap">
+      <Card title="Contribution Heatmap" titleIcon={<Flame size={14} />}>
         <p className="text-xs text-slate-400">Last 12 weeks activity snapshot</p>
 
         <div className="mt-4 grid grid-cols-12 gap-1.5">

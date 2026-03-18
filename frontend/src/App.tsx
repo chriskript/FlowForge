@@ -1,10 +1,12 @@
 import { lazy, Suspense, useEffect, useState, type FormEvent } from 'react'
+import { Copy, Eraser, HeartPulse, Save, TimerReset, Waves } from 'lucide-react'
 import { Toaster } from 'react-hot-toast'
 import { Header } from './components/layout/Header'
 import { Sidebar } from './components/layout/Sidebar'
 import { useGithubData } from './hooks/useGithubData'
 import { calculateRepoHealthScore } from './utils/repoHealth'
 import { Card } from './components/ui/Card'
+import { GitHubIcon } from './components/ui/GitHubIcon'
 import { Skeleton } from './components/ui/Skeleton'
 import { ReposTabView } from './components/tabs/ReposTabView'
 import { ContributorsTabView } from './components/tabs/ContributorsTabView'
@@ -211,7 +213,8 @@ function App() {
             <div className="flex items-center justify-between gap-3">
               <div>
                 <p className="text-xs uppercase tracking-[0.16em] text-slate-400">Repository Settings</p>
-                <p className="mt-1 text-sm text-slate-300">
+                <p className="mt-1 inline-flex items-center gap-1.5 text-sm text-slate-300">
+                  <GitHubIcon size={14} className="text-slate-200" iconTitle="GitHub" />
                   {hasRepoSelection
                     ? `Active: ${selectedRepo.owner}/${selectedRepo.repo}`
                     : 'Set owner and repo to load dashboard data.'}
@@ -220,8 +223,9 @@ function App() {
               <button
                 type="button"
                 onClick={clearRepoSelection}
-                className="rounded-md border border-white/20 px-2.5 py-1.5 text-xs text-slate-300 transition hover:bg-white/10"
+                className="inline-flex items-center gap-1.5 rounded-md border border-white/20 px-2.5 py-1.5 text-xs text-slate-300 transition hover:bg-white/10"
               >
+                <Eraser size={12} />
                 Clear
               </button>
             </div>
@@ -261,15 +265,17 @@ function App() {
                 <div className="grid w-full grid-cols-2 gap-2">
                   <button
                     type="submit"
-                    className="rounded-lg border border-cyan-300/40 bg-cyan-300/10 px-3 py-2 text-sm font-medium text-cyan-100 transition hover:bg-cyan-300/20"
+                    className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-cyan-300/40 bg-cyan-300/10 px-3 py-2 text-sm font-medium text-cyan-100 transition hover:bg-cyan-300/20"
                   >
+                    <Save size={14} />
                     Apply
                   </button>
                   <button
                     type="button"
                     onClick={() => void copyShareLink()}
-                    className="rounded-lg border border-white/20 bg-white/5 px-3 py-2 text-sm font-medium text-slate-200 transition hover:bg-white/10"
+                    className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-white/20 bg-white/5 px-3 py-2 text-sm font-medium text-slate-200 transition hover:bg-white/10"
                   >
+                    <Copy size={14} />
                     Share
                   </button>
                 </div>
@@ -291,7 +297,10 @@ function App() {
 
           {error && hasRepoSelection ? (
             <div className="rounded-xl border border-rose-300/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-100">
-              <p>GitHub API error: {error}</p>
+              <p className="inline-flex items-center gap-1.5">
+                <GitHubIcon size={14} className="text-rose-100" iconTitle="GitHub" />
+                GitHub API error: {error}
+              </p>
               <button
                 type="button"
                 onClick={() => void refresh()}
@@ -355,7 +364,7 @@ function App() {
                   <Insights commits={commits} prs={prs} issues={issues} loading={loading} error={error} />
                 </Suspense>
 
-                <Card title="Review SLA">
+                <Card title="Review SLA" titleIcon={<TimerReset size={14} />}>
                   <p className="text-xs text-slate-400">
                     Average PR review + merge time
                     <span
@@ -376,7 +385,7 @@ function App() {
                   )}
                 </Card>
 
-                <Card title="Repo Health">
+                <Card title="Repo Health" titleIcon={<HeartPulse size={14} />}>
                   <p className="text-xs text-slate-400">
                     Composite score from commits, issues, and PR velocity
                     <span
@@ -416,7 +425,7 @@ function App() {
                   )}
                 </Card>
 
-                <Card title="Deployment Rhythm">
+                <Card title="Deployment Rhythm" titleIcon={<Waves size={14} />}>
                   <p className="text-xs text-slate-400">
                     Average commits per week (6-week window)
                     <span

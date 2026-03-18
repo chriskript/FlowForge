@@ -1,4 +1,5 @@
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
+import { CircleCheckBig } from 'lucide-react'
 import type { GithubIssue } from '../../hooks/useGithubData'
 import { EmptyState } from '../ui/EmptyState'
 import { Card } from '../ui/Card'
@@ -42,7 +43,7 @@ export function IssueThroughput({ issues, loading, error }: IssueThroughputProps
 
   if (loading) {
     return (
-      <Card title="Issue Throughput">
+      <Card title="Issue Throughput" titleIcon={<CircleCheckBig size={14} />}>
         <p className="text-xs text-slate-400">Loading issue activity...</p>
         <Skeleton className="mt-4 h-56 w-full" />
         <Skeleton className="mt-4 h-16" />
@@ -52,7 +53,7 @@ export function IssueThroughput({ issues, loading, error }: IssueThroughputProps
 
   if (error) {
     return (
-      <Card title="Issue Throughput">
+      <Card title="Issue Throughput" titleIcon={<CircleCheckBig size={14} />}>
         <p className="rounded-md border border-rose-300/30 bg-rose-500/10 px-3 py-2 text-xs text-rose-200">
           Unable to load issue throughput: {error}
         </p>
@@ -62,7 +63,7 @@ export function IssueThroughput({ issues, loading, error }: IssueThroughputProps
 
   if (!hasData) {
     return (
-      <Card title="Issue Throughput">
+      <Card title="Issue Throughput" titleIcon={<CircleCheckBig size={14} />}>
         <EmptyState
           title="No Issues Found"
           description="Issue throughput appears empty for this repository and timeframe."
@@ -72,7 +73,7 @@ export function IssueThroughput({ issues, loading, error }: IssueThroughputProps
   }
 
   return (
-    <Card title="Issue Throughput">
+    <Card title="Issue Throughput" titleIcon={<CircleCheckBig size={14} />}>
       <p className="text-xs text-slate-400">Opened vs closed in the last 14 days</p>
 
       <div className="chart-fade mt-4 h-56 w-full">

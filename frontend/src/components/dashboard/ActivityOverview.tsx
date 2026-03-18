@@ -9,6 +9,7 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
+import { BarChart3, GitCommitHorizontal } from 'lucide-react'
 import type { GithubCommit, GithubIssue, GithubPullRequest } from '../../hooks/useGithubData'
 import { EmptyState } from '../ui/EmptyState'
 import { Card } from '../ui/Card'
@@ -72,12 +73,12 @@ export function ActivityOverview({ commits, prs, issues, loading, error }: Activ
   if (loading) {
     return (
       <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 sm:col-span-2 xl:col-span-3">
-        <Card title="Commits Over Time">
+        <Card title="Commits Over Time" titleIcon={<GitCommitHorizontal size={14} />}>
           <p className="text-xs text-slate-400">Loading commit activity...</p>
           <ChartSkeleton />
         </Card>
 
-        <Card title="Pull Requests vs Issues">
+        <Card title="Pull Requests vs Issues" titleIcon={<BarChart3 size={14} />}>
           <p className="text-xs text-slate-400">Loading issue and PR activity...</p>
           <ChartSkeleton />
         </Card>
@@ -88,13 +89,13 @@ export function ActivityOverview({ commits, prs, issues, loading, error }: Activ
   if (error) {
     return (
       <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 sm:col-span-2 xl:col-span-3">
-        <Card title="Commits Over Time">
+        <Card title="Commits Over Time" titleIcon={<GitCommitHorizontal size={14} />}>
           <p className="rounded-md border border-rose-300/30 bg-rose-500/10 px-3 py-2 text-xs text-rose-200">
             Unable to load activity data: {error}
           </p>
         </Card>
 
-        <Card title="Pull Requests vs Issues">
+        <Card title="Pull Requests vs Issues" titleIcon={<BarChart3 size={14} />}>
           <p className="rounded-md border border-rose-300/30 bg-rose-500/10 px-3 py-2 text-xs text-rose-200">
             Unable to load throughput data: {error}
           </p>
@@ -106,14 +107,14 @@ export function ActivityOverview({ commits, prs, issues, loading, error }: Activ
   if (!hasData) {
     return (
       <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 sm:col-span-2 xl:col-span-3">
-        <Card title="Commits Over Time">
+        <Card title="Commits Over Time" titleIcon={<GitCommitHorizontal size={14} />}>
           <EmptyState
             title="No Commit Activity"
             description="No commits are available in the selected time window."
           />
         </Card>
 
-        <Card title="Pull Requests vs Issues">
+        <Card title="Pull Requests vs Issues" titleIcon={<BarChart3 size={14} />}>
           <EmptyState
             title="No Throughput Data"
             description="Pull request and issue activity has not been detected yet."
@@ -125,7 +126,7 @@ export function ActivityOverview({ commits, prs, issues, loading, error }: Activ
 
   return (
     <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 sm:col-span-2 xl:col-span-3">
-      <Card title="Commits Over Time">
+      <Card title="Commits Over Time" titleIcon={<GitCommitHorizontal size={14} />}>
         <p className="text-xs text-slate-400">Daily commits from the last 7 days</p>
 
         <div className="chart-fade mt-4 h-64 w-full">
@@ -155,7 +156,7 @@ export function ActivityOverview({ commits, prs, issues, loading, error }: Activ
         </div>
       </Card>
 
-      <Card title="Pull Requests vs Issues">
+      <Card title="Pull Requests vs Issues" titleIcon={<BarChart3 size={14} />}>
         <p className="text-xs text-slate-400">Fetched from live repository events</p>
 
         <div className="chart-fade mt-4 h-64 w-full">

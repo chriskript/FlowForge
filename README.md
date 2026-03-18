@@ -1,90 +1,114 @@
 # FlowForge
 
-FlowForge is a production-style GitHub Analytics Dashboard that visualizes repository activity, velocity, throughput, contributor patterns, and health signals.
+FlowForge is a production-style GitHub Analytics Dashboard for repository health, throughput, and contributor performance.
 
-The app uses a React frontend and a Node.js + Express backend. The backend is the single source of truth and pulls data from the GitHub GraphQL API.
+It uses a React frontend and a Node.js + Express backend. The backend is the single source of truth and fetches data from the GitHub GraphQL API.
 
 ## Tech Stack
 
 - Frontend: React, Vite, TypeScript
-- UI: Tailwind CSS + CSS Modules
+- Styling: Tailwind CSS + CSS Modules
 - Charts: Recharts
+- Notifications: react-hot-toast
 - Backend: Express, TypeScript
 - Data Source: GitHub GraphQL API
 
-## What You Can Track
+## Core Capabilities
 
-- Commit activity trends
-- Pull request and issue throughput
+- Activity and throughput analytics
 - Repo velocity and merge performance
-- Contributor leaderboard and heatmap
+- Contributor ranking and share analysis
 - Repo health score (0 to 100)
-- Insights and risk notifications
+- Color-coded insights via toast notifications
+- Runtime repository switching from the frontend
+- Shareable URLs with owner/repo query params
+
+## Tab Workspaces
+
+- Dashboard: unified executive overview
+- Repos: repository-focused operational workspace with PR/issue queues
+- Contributors: contributor-focused workspace with ranking and contribution share
 
 ## Project Structure
 
-- frontend: React dashboard app
-- backend: Express API service for GitHub GraphQL
-- .github: project instructions and workflow docs
+- frontend: dashboard application
+- backend: API layer and GitHub integration
+- .github: Copilot/project instruction files
 
 ## Prerequisites
 
 - Node.js 20+
 - npm 10+
-- A GitHub personal access token with access to target repositories
+- GitHub token with repository access
 
 ## Environment Variables
 
 ### Backend
 
-Create backend/.env with:
+Create backend/.env:
 
     GITHUB_TOKEN=your_github_token
     GITHUB_OWNER=default_owner_optional
     GITHUB_REPO=default_repo_optional
     PORT=4000
 
+Notes:
+
+- GITHUB_TOKEN is required.
+- GITHUB_OWNER and GITHUB_REPO are optional fallbacks.
+
 ### Frontend
 
-Use frontend/.env.example as reference. Create frontend/.env with:
+Create frontend/.env (see frontend/.env.example):
 
     VITE_GITHUB_OWNER=default_owner_optional
     VITE_GITHUB_REPO=default_repo_optional
+    VITE_API_BASE_URL=
 
-The UI also supports runtime repository switching through the settings panel, so users can change owner/repo without editing code.
+Notes:
+
+- VITE_GITHUB_OWNER and VITE_GITHUB_REPO are optional defaults.
+- Users can switch owner/repo from the UI without code changes.
+- VITE_API_BASE_URL is optional for cross-origin deployments.
 
 ## Install
 
-From the repository root:
+From repository root:
 
     npm install
 
-Frontend and backend dependencies can also be installed separately:
+Optional manual install by package:
 
     cd frontend && npm install
     cd ../backend && npm install
 
 ## Run In Development
 
-From the repository root:
+From repository root:
+
+    npm run dev:all
+
+Also available:
 
     npm run dev
-
-This starts:
-
-- Frontend on Vite dev server
-- Backend on Express dev server
-
-Optional split commands from root:
-
     npm run dev:frontend
     npm run dev:backend
 
 ## Build
 
-From the repository root:
+From repository root:
 
     npm run build
+
+## Test
+
+From repository root:
+
+    npm run test
+
+Current status:
+
+- Placeholder script only (no automated test suite configured yet).
 
 ## Backend API
 
@@ -92,11 +116,11 @@ Health check:
 
     GET /health
 
-GitHub overview endpoint:
+GitHub overview:
 
     GET /api/github/overview
 
-Optional query params:
+Query params:
 
 - owner
 - repo
@@ -114,34 +138,30 @@ Response shape:
       "issues": []
     }
 
-## UX Features
+## UX Notes
 
-- Glassmorphism cards and modern dashboard layout
-- Loading skeletons
-- Empty states for all major sections
-- Error handling and retry actions
-- Responsive behavior across desktop and mobile
-- Animated card entrance and chart transitions
-- Color-coded toast insights for trend changes
+- Glassmorphism card system
+- Loading skeletons across modules
+- Empty states and error states
+- Smooth hover animations and chart fade-ins
+- Staggered card entrance animations
+- Responsive desktop/mobile layout
+- Share button for repo-specific URL state
 
-## Dashboard Modules
+## Troubleshooting
 
-- Activity Overview
-- Repo Velocity
-- Issue Throughput
-- Contributors
-- Insights
-- Repo Health
+- If API calls return HTML instead of JSON in dev:
+  - Ensure backend is running on port 4000.
+  - Ensure Vite dev server proxy is enabled in frontend/vite.config.ts.
+- If data fails to load:
+  - Verify GITHUB_TOKEN in backend/.env.
+  - Check token scopes/repository access.
+- If repo data is missing:
+  - Confirm owner/repo in the settings panel or URL query params.
 
-## Notes
+## Roadmap Ideas
 
-- Ensure GITHUB_TOKEN is valid and can access the selected repository.
-- If API requests fail, use the in-app retry action and verify env variables.
-- If no repository is selected, use the settings panel at the top of the dashboard.
-
-## Next Improvements
-
-- Add authentication and per-user saved repositories
-- Add historical storage for trend comparison over longer windows
-- Add tests for score and insights calculations
-- Add CI pipeline and deployment docs
+- Add automated tests (frontend + backend)
+- Add user auth and saved repository presets
+- Add persistent historical snapshots for long-term trends
+- Add CI workflows and deployment documentation

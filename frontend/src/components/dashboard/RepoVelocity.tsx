@@ -1,4 +1,5 @@
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
+import { Gauge, GitCommitHorizontal } from 'lucide-react'
 import type { GithubCommit, GithubPullRequest } from '../../hooks/useGithubData'
 import { EmptyState } from '../ui/EmptyState'
 import { Card } from '../ui/Card'
@@ -84,13 +85,13 @@ export function RepoVelocity({ commits, prs, loading, error }: RepoVelocityProps
     return (
       <section className="grid grid-cols-1 gap-4 sm:grid-cols-3 sm:gap-6 sm:col-span-2 xl:col-span-3">
         <div className="sm:col-span-2">
-          <Card title="Commits Per Week">
+          <Card title="Commits Per Week" titleIcon={<GitCommitHorizontal size={14} />}>
             <p className="text-xs text-slate-400">Loading velocity trend...</p>
             <ChartSkeleton />
           </Card>
         </div>
 
-        <Card title="Average PR Merge Time">
+        <Card title="Average PR Merge Time" titleIcon={<Gauge size={14} />}>
           <Skeleton className="mt-3 h-10 w-24" />
           <Skeleton className="mt-4 h-7 w-36" />
         </Card>
@@ -102,14 +103,14 @@ export function RepoVelocity({ commits, prs, loading, error }: RepoVelocityProps
     return (
       <section className="grid grid-cols-1 gap-4 sm:grid-cols-3 sm:gap-6 sm:col-span-2 xl:col-span-3">
         <div className="sm:col-span-2">
-          <Card title="Commits Per Week">
+          <Card title="Commits Per Week" titleIcon={<GitCommitHorizontal size={14} />}>
             <p className="rounded-md border border-rose-300/30 bg-rose-500/10 px-3 py-2 text-xs text-rose-200">
               Unable to load velocity chart: {error}
             </p>
           </Card>
         </div>
 
-        <Card title="Average PR Merge Time">
+        <Card title="Average PR Merge Time" titleIcon={<Gauge size={14} />}>
           <p className="rounded-md border border-rose-300/30 bg-rose-500/10 px-3 py-2 text-xs text-rose-200">
             Unable to load merge-time metric.
           </p>
@@ -121,7 +122,7 @@ export function RepoVelocity({ commits, prs, loading, error }: RepoVelocityProps
   return (
     <section className="grid grid-cols-1 gap-4 sm:grid-cols-3 sm:gap-6 sm:col-span-2 xl:col-span-3">
       <div className="sm:col-span-2">
-        <Card title="Commits Per Week">
+        <Card title="Commits Per Week" titleIcon={<GitCommitHorizontal size={14} />}>
           <p className="text-xs text-slate-400">6-week commit trend from repository history</p>
 
           {hasCommitTrend ? (
@@ -164,7 +165,7 @@ export function RepoVelocity({ commits, prs, loading, error }: RepoVelocityProps
         </Card>
       </div>
 
-      <Card title="Average PR Merge Time">
+      <Card title="Average PR Merge Time" titleIcon={<Gauge size={14} />}>
         <p className="text-xs text-slate-400">Based on merged pull requests</p>
 
         {currentMergeHours === null ? (

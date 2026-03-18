@@ -1,6 +1,7 @@
 import type { GithubCommit, GithubIssue, GithubPullRequest } from '../../hooks/useGithubData'
 import { useEffect, useMemo, useRef } from 'react'
 import toast from 'react-hot-toast'
+import { Lightbulb } from 'lucide-react'
 import { Card } from '../ui/Card'
 import { EmptyState } from '../ui/EmptyState'
 import { Skeleton } from '../ui/Skeleton'
@@ -223,7 +224,7 @@ export function Insights({ commits, prs, issues, loading, error }: InsightsProps
 
   if (loading) {
     return (
-      <Card title="Insights">
+      <Card title="Insights" titleIcon={<Lightbulb size={14} />}>
         <p className="text-xs text-slate-400">Preparing insight notifications...</p>
         <Skeleton className="mt-3 h-10 w-full" />
       </Card>
@@ -232,7 +233,7 @@ export function Insights({ commits, prs, issues, loading, error }: InsightsProps
 
   if (error) {
     return (
-      <Card title="Insights">
+      <Card title="Insights" titleIcon={<Lightbulb size={14} />}>
         <p className="rounded-md border border-rose-300/30 bg-rose-500/10 px-3 py-2 text-xs text-rose-200">
           Unable to generate insights while API is failing: {error}
         </p>
@@ -242,7 +243,7 @@ export function Insights({ commits, prs, issues, loading, error }: InsightsProps
 
   if (!hasAnyData) {
     return (
-      <Card title="Insights">
+      <Card title="Insights" titleIcon={<Lightbulb size={14} />}>
         <EmptyState
           title="No Insight Signals"
           description="Activity data is required before trend notifications can be generated."
@@ -252,7 +253,7 @@ export function Insights({ commits, prs, issues, loading, error }: InsightsProps
   }
 
   return (
-    <Card title="Insights">
+    <Card title="Insights" titleIcon={<Lightbulb size={14} />}>
       <p className="text-xs text-slate-400">Insights are delivered as toast notifications when trend status changes.</p>
       <div className="mt-3 rounded-lg border border-white/10 bg-slate-900/35 px-3 py-2 text-xs text-slate-300">
         Toast alerts active: {alerts.length} checks (backlog, merge speed, commits).
