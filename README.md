@@ -51,11 +51,13 @@ Create backend/.env:
     GITHUB_OWNER=default_owner_optional
     GITHUB_REPO=default_repo_optional
     PORT=4000
+    CORS_ORIGINS=http://localhost:5173
 
 Notes:
 
 - GITHUB_TOKEN is required.
 - GITHUB_OWNER and GITHUB_REPO are optional fallbacks.
+- CORS_ORIGINS is a comma-separated list of allowed frontend origins.
 
 ### Frontend
 
@@ -109,6 +111,66 @@ From repository root:
 Current status:
 
 - Placeholder script only (no automated test suite configured yet).
+
+## Deployment (Vercel + Render)
+
+Recommended setup:
+
+- Frontend on Vercel
+- Backend on Render
+
+### 1) Deploy Backend to Render
+
+The repository includes render.yaml at project root with a backend web service blueprint.
+
+Service settings used:
+
+- Root directory: backend
+- Build command: npm ci && npm run build
+- Start command: npm run start
+- Health check path: /health
+
+Set these Render environment variables:
+
+- GITHUB_TOKEN (required)
+- GITHUB_OWNER (optional)
+- GITHUB_REPO (optional)
+- CORS_ORIGINS (required in production; include your Vercel URL)
+
+Example CORS_ORIGINS:
+
+    https://flowforge.vercel.app,https://flowforge-git-main-chriskript.vercel.app
+
+### 2) Deploy Frontend to Vercel
+
+Create a Vercel project with Root Directory set to frontend.
+
+Set these Vercel environment variables:
+
+- VITE_API_BASE_URL=https://your-render-service.onrender.com
+- VITE_GITHUB_OWNER (optional)
+- VITE_GITHUB_REPO (optional)
+
+Build settings for Vercel:
+
+- Build command: npm run build
+- Output directory: dist
+
+The frontend includes frontend/vercel.json to rewrite all routes to index.html for SPA routing.
+
+### 3) Connect Frontend and Backend
+
+After both services are live:
+
+- Confirm backend health endpoint: GET /health
+- Confirm frontend can load data from /api/github/overview via VITE_API_BASE_URL
+- Verify CORS_ORIGINS contains every Vercel domain you use (production + preview if needed)
+
+### 4) Production Notes
+
+- Keep GITHUB_TOKEN only on the backend; never expose it in frontend env vars.
+- Render free instances can cold start; first request may be slower.
+- If API returns HTML in frontend, verify VITE_API_BASE_URL and backend service status.
 
 ## Backend API
 
