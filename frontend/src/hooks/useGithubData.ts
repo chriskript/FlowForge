@@ -49,6 +49,7 @@ type UseGithubDataResult = {
 }
 
 const overviewCache = new Map<string, GithubOverviewData>()
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? '').trim()
 
 function toQueryString(options: UseGithubDataOptions) {
   const params = new URLSearchParams()
@@ -94,8 +95,25 @@ export function useGithubData(options: UseGithubDataOptions = {}): UseGithubData
     setError(null)
 
     try {
-      const response = await fetch(`/api/github/overview${query}`)
-      const payload = (await response.json()) as unknown
+      const endpoint = `${API_BASE_URL}/api/github/overview${query}`
+      const response = await fetch(endpoint)
+      const rawBody = await response.text()
+
+      let payload: unknown = null
+      if (rawBody) {
+        try {
+          payload = JSON.parse(rawBody) as unknown
+        } catch {
+          const maybeHtml = rawBody.trim().startsWith('<')
+          if (maybeHtml) {
+            throw new Error(
+              'API returned HTML instead of JSON. Ensure backend is running and frontend dev proxy is configured.',
+            )
+          }
+
+          throw new Error('API returned invalid JSON payload.')
+        }
+      }
 
       if (!response.ok) {
         const message =

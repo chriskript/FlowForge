@@ -14,9 +14,49 @@ type RepoSelection = {
 
 const REPO_SELECTION_STORAGE_KEY = 'flowforge.repoSelection'
 
+function readUrlRepoSelection(): RepoSelection | null {
+  const params = new URLSearchParams(window.location.search)
+  const owner = (params.get('owner') ?? '').trim()
+  const repo = (params.get('repo') ?? '').trim()
+
+  if (!owner && !repo) {
+    return null
+  }
+
+  return { owner, repo }
+}
+
+function writeUrlRepoSelection(selection: RepoSelection) {
+  const url = new URL(window.location.href)
+
+  if (selection.owner) {
+    url.searchParams.set('owner', selection.owner)
+  } else {
+    url.searchParams.delete('owner')
+  }
+
+  if (selection.repo) {
+    url.searchParams.set('repo', selection.repo)
+  } else {
+    url.searchParams.delete('repo')
+  }
+
+  const nextQuery = url.searchParams.toString()
+  const nextUrl = `${url.pathname}${nextQuery ? `?${nextQuery}` : ''}${url.hash}`
+  window.history.replaceState(null, '', nextUrl)
+}
+
 function readInitialRepoSelection(): RepoSelection {
   const envOwner = (import.meta.env.VITE_GITHUB_OWNER ?? '').trim()
   const envRepo = (import.meta.env.VITE_GITHUB_REPO ?? '').trim()
+  const urlSelection = readUrlRepoSelection()
+
+  if (urlSelection) {
+    return {
+      owner: urlSelection.owner || envOwner,
+      repo: urlSelection.repo || envRepo,
+    }
+  }
 
   try {
     const raw = window.localStorage.getItem(REPO_SELECTION_STORAGE_KEY)
@@ -67,6 +107,7 @@ const Insights = lazy(() =>
 function App() {
   const [selectedRepo, setSelectedRepo] = useState<RepoSelection>(readInitialRepoSelection)
   const [draftRepo, setDraftRepo] = useState<RepoSelection>(selectedRepo)
+  const [shareMessage, setShareMessage] = useState<string>('')
 
   const hasRepoSelection = Boolean(selectedRepo.owner && selectedRepo.repo)
 
@@ -78,6 +119,7 @@ function App() {
 
   useEffect(() => {
     setDraftRepo(selectedRepo)
+    writeUrlRepoSelection(selectedRepo)
 
     try {
       if (selectedRepo.owner || selectedRepo.repo) {
@@ -101,6 +143,18 @@ function App() {
   function clearRepoSelection() {
     setDraftRepo({ owner: '', repo: '' })
     setSelectedRepo({ owner: '', repo: '' })
+  }
+
+  async function copyShareLink() {
+    const shareUrl = window.location.href
+    try {
+      await navigator.clipboard.writeText(shareUrl)
+      setShareMessage('Link copied')
+      window.setTimeout(() => setShareMessage(''), 2000)
+    } catch {
+      setShareMessage('Copy failed')
+      window.setTimeout(() => setShareMessage(''), 2000)
+    }
   }
 
   const mergedPrs = prs.filter((pr) => pr.mergedAt)
@@ -199,14 +253,28 @@ function App() {
               </label>
 
               <div className="flex items-end">
-                <button
-                  type="submit"
-                  className="w-full rounded-lg border border-cyan-300/40 bg-cyan-300/10 px-3 py-2 text-sm font-medium text-cyan-100 transition hover:bg-cyan-300/20"
-                >
-                  Apply Repository
-                </button>
+                <div className="grid w-full grid-cols-2 gap-2">
+                  <button
+                    type="submit"
+                    className="rounded-lg border border-cyan-300/40 bg-cyan-300/10 px-3 py-2 text-sm font-medium text-cyan-100 transition hover:bg-cyan-300/20"
+                  >
+                    Apply
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => void copyShareLink()}
+                    className="rounded-lg border border-white/20 bg-white/5 px-3 py-2 text-sm font-medium text-slate-200 transition hover:bg-white/10"
+                  >
+                    Share
+                  </button>
+                </div>
               </div>
             </form>
+
+            <p className="mt-2 text-xs text-slate-400">
+              Shareable URL uses owner/repo query params.
+              {shareMessage ? <span className="ml-2 text-cyan-200">{shareMessage}</span> : null}
+            </p>
           </section>
 
           {!hasRepoSelection ? (
