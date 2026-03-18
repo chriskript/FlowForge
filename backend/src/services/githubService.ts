@@ -73,6 +73,70 @@ export type GithubOverview = {
   }>;
 };
 
+type OverviewCacheEntry = {
+  data: GithubOverview;
+  expiresAt: number;
+};
+
+const OVERVIEW_CACHE_MAX_ENTRIES = 200;
+const OVERVIEW_CACHE_DEFAULT_TTL_MS = 60_000;
+const overviewCache = new Map<string, OverviewCacheEntry>();
+
+function getOverviewCacheTtlMs() {
+  const rawTtl = process.env.OVERVIEW_CACHE_TTL_SECONDS;
+
+  if (rawTtl === undefined) {
+    return OVERVIEW_CACHE_DEFAULT_TTL_MS;
+  }
+
+  const parsedSeconds = Number(rawTtl);
+
+  if (!Number.isFinite(parsedSeconds)) {
+    return OVERVIEW_CACHE_DEFAULT_TTL_MS;
+  }
+
+  return Math.max(0, Math.floor(parsedSeconds * 1000));
+}
+
+function getOverviewCacheKey(owner: string, repo: string, limit: number) {
+  return `${owner.toLowerCase()}/${repo.toLowerCase()}?limit=${limit}`;
+}
+
+function getCachedOverview(cacheKey: string) {
+  const entry = overviewCache.get(cacheKey);
+
+  if (!entry) {
+    return null;
+  }
+
+  if (entry.expiresAt <= Date.now()) {
+    overviewCache.delete(cacheKey);
+    return null;
+  }
+
+  return entry.data;
+}
+
+function pruneOverviewCache() {
+  const now = Date.now();
+
+  for (const [key, entry] of overviewCache.entries()) {
+    if (entry.expiresAt <= now) {
+      overviewCache.delete(key);
+    }
+  }
+
+  while (overviewCache.size > OVERVIEW_CACHE_MAX_ENTRIES) {
+    const oldestKey = overviewCache.keys().next().value;
+
+    if (!oldestKey) {
+      break;
+    }
+
+    overviewCache.delete(oldestKey);
+  }
+}
+
 const OVERVIEW_QUERY = `
   query GitHubOverview($owner: String!, $name: String!, $limit: Int!) {
     repository(owner: $owner, name: $name) {
@@ -138,6 +202,17 @@ export async function fetchGithubOverview(
   repo: string,
   limit = 20,
 ): Promise<GithubOverview> {
+  const cacheTtlMs = getOverviewCacheTtlMs();
+  const cacheKey = getOverviewCacheKey(owner, repo, limit);
+
+  if (cacheTtlMs > 0) {
+    const cachedOverview = getCachedOverview(cacheKey);
+
+    if (cachedOverview) {
+      return cachedOverview;
+    }
+  }
+
   const token = getGithubToken();
 
   const response = await fetch('https://api.github.com/graphql', {
@@ -175,7 +250,7 @@ export async function fetchGithubOverview(
 
   const commitHistory = repository.defaultBranchRef?.target.history.nodes ?? [];
 
-  return {
+  const overview: GithubOverview = {
     commits: commitHistory.map((commit) => ({
       sha: commit.oid,
       committedAt: commit.committedDate,
@@ -199,4 +274,14 @@ export async function fetchGithubOverview(
       author: issue.author?.login ?? null,
     })),
   };
+
+  if (cacheTtlMs > 0) {
+    overviewCache.set(cacheKey, {
+      data: overview,
+      expiresAt: Date.now() + cacheTtlMs,
+    });
+    pruneOverviewCache();
+  }
+
+  return overview;
 }

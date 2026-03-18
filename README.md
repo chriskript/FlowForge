@@ -52,12 +52,14 @@ Create backend/.env:
     GITHUB_REPO=default_repo_optional
     PORT=4000
     CORS_ORIGINS=http://localhost:5173
+    OVERVIEW_CACHE_TTL_SECONDS=60
 
 Notes:
 
 - GITHUB_TOKEN is required.
 - GITHUB_OWNER and GITHUB_REPO are optional fallbacks.
 - CORS_ORIGINS is a comma-separated list of allowed frontend origins.
+- OVERVIEW_CACHE_TTL_SECONDS controls in-memory API response caching on the backend.
 
 ### Frontend
 
@@ -171,6 +173,7 @@ After both services are live:
 - Keep GITHUB_TOKEN only on the backend; never expose it in frontend env vars.
 - Render free instances can cold start; first request may be slower.
 - If API returns HTML in frontend, verify VITE_API_BASE_URL and backend service status.
+- Tune OVERVIEW_CACHE_TTL_SECONDS (for example 30-120) to reduce GitHub API usage.
 
 ## Backend API
 
