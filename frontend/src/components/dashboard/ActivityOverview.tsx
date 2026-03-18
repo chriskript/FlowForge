@@ -9,30 +9,126 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
+import type { GithubCommit, GithubIssue, GithubPullRequest } from '../../hooks/useGithubData'
+import { EmptyState } from '../ui/EmptyState'
 import { Card } from '../ui/Card'
+import { Skeleton } from '../ui/Skeleton'
 
-const commitsPerDay = [
-  { day: 'Mon', commits: 22 },
-  { day: 'Tue', commits: 31 },
-  { day: 'Wed', commits: 28 },
-  { day: 'Thu', commits: 36 },
-  { day: 'Fri', commits: 44 },
-  { day: 'Sat', commits: 19 },
-  { day: 'Sun', commits: 25 },
-]
+type ActivityOverviewProps = {
+  commits: GithubCommit[]
+  prs: GithubPullRequest[]
+  issues: GithubIssue[]
+  loading: boolean
+  error: string | null
+}
 
-const workItems = [
-  { label: 'Pull Requests', count: 37 },
-  { label: 'Issues', count: 42 },
-]
+function toDayKey(date: Date) {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(
+    date.getDate(),
+  ).padStart(2, '0')}`
+}
 
-export function ActivityOverview() {
+function buildCommitsPerDay(commits: GithubCommit[]) {
+  const formatter = new Intl.DateTimeFormat('en-US', { weekday: 'short' })
+  const now = new Date()
+  const days = Array.from({ length: 7 }, (_, index) => {
+    const date = new Date(now)
+    date.setDate(now.getDate() - (6 - index))
+    return {
+      key: toDayKey(date),
+      day: formatter.format(date),
+      commits: 0,
+    }
+  })
+
+  const dayMap = new Map(days.map((entry) => [entry.key, entry]))
+
+  commits.forEach((commit) => {
+    const commitDate = new Date(commit.committedAt)
+    if (Number.isNaN(commitDate.getTime())) return
+
+    const key = toDayKey(commitDate)
+    const bucket = dayMap.get(key)
+    if (bucket) {
+      bucket.commits += 1
+    }
+  })
+
+  return days.map(({ day, commits: total }) => ({ day, commits: total }))
+}
+
+function ChartSkeleton() {
+  return <Skeleton className="mt-4 h-64 w-full" />
+}
+
+export function ActivityOverview({ commits, prs, issues, loading, error }: ActivityOverviewProps) {
+  const commitsPerDay = buildCommitsPerDay(commits)
+  const workItems = [
+    { label: 'Pull Requests', count: prs.length },
+    { label: 'Issues', count: issues.length },
+  ]
+  const hasData = commits.length > 0 || prs.length > 0 || issues.length > 0
+
+  if (loading) {
+    return (
+      <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 sm:col-span-2 xl:col-span-3">
+        <Card title="Commits Over Time">
+          <p className="text-xs text-slate-400">Loading commit activity...</p>
+          <ChartSkeleton />
+        </Card>
+
+        <Card title="Pull Requests vs Issues">
+          <p className="text-xs text-slate-400">Loading issue and PR activity...</p>
+          <ChartSkeleton />
+        </Card>
+      </section>
+    )
+  }
+
+  if (error) {
+    return (
+      <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 sm:col-span-2 xl:col-span-3">
+        <Card title="Commits Over Time">
+          <p className="rounded-md border border-rose-300/30 bg-rose-500/10 px-3 py-2 text-xs text-rose-200">
+            Unable to load activity data: {error}
+          </p>
+        </Card>
+
+        <Card title="Pull Requests vs Issues">
+          <p className="rounded-md border border-rose-300/30 bg-rose-500/10 px-3 py-2 text-xs text-rose-200">
+            Unable to load throughput data: {error}
+          </p>
+        </Card>
+      </section>
+    )
+  }
+
+  if (!hasData) {
+    return (
+      <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 sm:col-span-2 xl:col-span-3">
+        <Card title="Commits Over Time">
+          <EmptyState
+            title="No Commit Activity"
+            description="No commits are available in the selected time window."
+          />
+        </Card>
+
+        <Card title="Pull Requests vs Issues">
+          <EmptyState
+            title="No Throughput Data"
+            description="Pull request and issue activity has not been detected yet."
+          />
+        </Card>
+      </section>
+    )
+  }
+
   return (
     <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 sm:col-span-2 xl:col-span-3">
       <Card title="Commits Over Time">
-        <p className="text-xs text-slate-400">Daily commits this week</p>
+        <p className="text-xs text-slate-400">Daily commits from the last 7 days</p>
 
-        <div className="mt-4 h-64 w-full">
+        <div className="chart-fade mt-4 h-64 w-full">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={commitsPerDay} margin={{ top: 10, right: 16, left: 0, bottom: 6 }}>
               <CartesianGrid stroke="rgba(148, 163, 184, 0.2)" strokeDasharray="4 4" />
@@ -60,9 +156,9 @@ export function ActivityOverview() {
       </Card>
 
       <Card title="Pull Requests vs Issues">
-        <p className="text-xs text-slate-400">Current sprint throughput</p>
+        <p className="text-xs text-slate-400">Fetched from live repository events</p>
 
-        <div className="mt-4 h-64 w-full">
+        <div className="chart-fade mt-4 h-64 w-full">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={workItems} margin={{ top: 10, right: 16, left: 0, bottom: 6 }}>
               <CartesianGrid stroke="rgba(148, 163, 184, 0.2)" strokeDasharray="4 4" />

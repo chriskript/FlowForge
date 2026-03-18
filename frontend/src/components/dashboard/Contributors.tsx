@@ -1,28 +1,62 @@
 import { Card } from '../ui/Card'
+import type { GithubCommit } from '../../hooks/useGithubData'
+import { EmptyState } from '../ui/EmptyState'
+import { Skeleton } from '../ui/Skeleton'
 
-type Contributor = {
-  name: string
-  commits: number
+type ContributorsProps = {
+  commits: GithubCommit[]
+  loading: boolean
+  error: string | null
 }
 
-const contributors: Contributor[] = [
-  { name: 'Alex Rivera', commits: 126 },
-  { name: 'Jordan Lee', commits: 112 },
-  { name: 'Sam Patel', commits: 97 },
-  { name: 'Morgan Chen', commits: 84 },
-  { name: 'Taylor Brooks', commits: 73 },
-]
+function dayKey(date: Date) {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(
+    date.getDate(),
+  ).padStart(2, '0')}`
+}
 
-const heatmapData = [
-  0, 1, 2, 0, 3, 1, 2, 1, 0, 2, 3, 1,
-  1, 0, 2, 3, 1, 2, 1, 0, 2, 3, 2, 1,
-  2, 3, 1, 0, 2, 1, 0, 2, 3, 1, 2, 0,
-  1, 2, 3, 1, 0, 2, 1, 3, 2, 0, 1, 2,
-  0, 1, 2, 3, 1, 0, 2, 1, 3, 2, 1, 0,
-  1, 0, 2, 1, 3, 2, 0, 1, 2, 3, 1, 0,
-  2, 1, 3, 0, 1, 2, 0, 3, 1, 2, 1, 0,
-  1, 2, 3, 1, 0, 2, 1, 3, 2, 0, 1, 2,
-]
+function buildContributors(commits: GithubCommit[]) {
+  const counts = new Map<string, number>()
+
+  commits.forEach((commit) => {
+    const author = commit.author?.trim() || 'Unknown'
+    counts.set(author, (counts.get(author) ?? 0) + 1)
+  })
+
+  return Array.from(counts.entries())
+    .map(([name, commitCount]) => ({ name, commits: commitCount }))
+    .sort((a, b) => b.commits - a.commits)
+    .slice(0, 6)
+}
+
+function buildHeatmapData(commits: GithubCommit[]) {
+  const now = new Date()
+  const cells = Array.from({ length: 84 }, (_, index) => {
+    const date = new Date(now)
+    date.setDate(now.getDate() - (83 - index))
+    return { key: dayKey(date), count: 0 }
+  })
+
+  const map = new Map(cells.map((cell) => [cell.key, cell]))
+  commits.forEach((commit) => {
+    const committedDate = new Date(commit.committedAt)
+    if (Number.isNaN(committedDate.getTime())) return
+
+    const key = dayKey(committedDate)
+    const cell = map.get(key)
+    if (cell) {
+      cell.count += 1
+    }
+  })
+
+  const maxCount = cells.reduce((max, cell) => Math.max(max, cell.count), 0)
+  return cells.map((cell) => {
+    if (cell.count === 0 || maxCount === 0) return 0
+    if (cell.count <= Math.ceil(maxCount / 3)) return 1
+    if (cell.count <= Math.ceil((maxCount * 2) / 3)) return 2
+    return 3
+  })
+}
 
 function initialsFromName(name: string) {
   return name
@@ -40,14 +74,75 @@ function heatLevelClass(level: number) {
   return 'bg-emerald-500'
 }
 
-export function Contributors() {
-  const sortedContributors = [...contributors].sort((a, b) => b.commits - a.commits)
+export function Contributors({ commits, loading, error }: ContributorsProps) {
+  const sortedContributors = buildContributors(commits)
+  const heatmapData = buildHeatmapData(commits)
+
+  if (loading) {
+    return (
+      <section className="grid grid-cols-1 gap-4 sm:grid-cols-3 sm:gap-6 sm:col-span-2 xl:col-span-3">
+        <div className="sm:col-span-2">
+          <Card title="Top Contributors">
+            <div className="mt-4 space-y-3">
+              {Array.from({ length: 4 }).map((_, index) => (
+                <Skeleton key={index} className="h-14" />
+              ))}
+            </div>
+          </Card>
+        </div>
+
+        <Card title="Contribution Heatmap">
+          <Skeleton className="mt-4 h-36" />
+        </Card>
+      </section>
+    )
+  }
+
+  if (error) {
+    return (
+      <section className="grid grid-cols-1 gap-4 sm:grid-cols-3 sm:gap-6 sm:col-span-2 xl:col-span-3">
+        <div className="sm:col-span-2">
+          <Card title="Top Contributors">
+            <p className="rounded-md border border-rose-300/30 bg-rose-500/10 px-3 py-2 text-xs text-rose-200">
+              Unable to load contributors: {error}
+            </p>
+          </Card>
+        </div>
+
+        <Card title="Contribution Heatmap">
+          <p className="text-xs text-slate-400">No heatmap data while API is unavailable.</p>
+        </Card>
+      </section>
+    )
+  }
+
+  if (sortedContributors.length === 0) {
+    return (
+      <section className="grid grid-cols-1 gap-4 sm:grid-cols-3 sm:gap-6 sm:col-span-2 xl:col-span-3">
+        <div className="sm:col-span-2">
+          <Card title="Top Contributors">
+            <EmptyState
+              title="No Contributors Detected"
+              description="Commit authors could not be derived from the selected repository data."
+            />
+          </Card>
+        </div>
+
+        <Card title="Contribution Heatmap">
+          <EmptyState
+            title="No Heatmap Activity"
+            description="Recent commit history is not available to populate the heatmap."
+          />
+        </Card>
+      </section>
+    )
+  }
 
   return (
     <section className="grid grid-cols-1 gap-4 sm:grid-cols-3 sm:gap-6 sm:col-span-2 xl:col-span-3">
       <div className="sm:col-span-2">
         <Card title="Top Contributors">
-          <p className="text-xs text-slate-400">Sorted by total commits (mock data)</p>
+          <p className="text-xs text-slate-400">Sorted by total commits from API history</p>
 
           <ul className="mt-4 space-y-3">
             {sortedContributors.map((contributor) => (
